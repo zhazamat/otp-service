@@ -59,34 +59,36 @@ public class AuthServiceImpl implements AuthService {
 
     public ResponseEntity<?> generateOtp(AuthDto authDto) {
         User user = userRepository.findByEmail(authDto.getEmail());
-        Code code=new Code();
-        String message = "Your New code";
-        if (Objects.isNull(user)) {
-            throw  new UserNotFoundException("User not Found");
-        }
-           else if (user.getBlockedDateEnd() != null) {
-                throw new UserBlockedException("Account is blocked. Try after a certain time");
-            }  else if(user.getBlockedDateEnd()== null){
-                code.setCode(String.valueOf(getOtpCode()));
-                code.setUserId(userService.findByEmail(authDto.getEmail()));
-                code.setEndDate(new Date(System.currentTimeMillis() + OTP_TTL));
-                code.setStatus(Status.CANCELED);
-                codeRepository.save(code);
 
-                mailService.sendEmail(userService.findByEmail(authDto.getEmail()).getEmail(), "your NEW code is:" + getOtpCode(), "otp code");
-            } else{
+        String message = "Created account.Your code is sending email";
+        if (Objects.isNull(user)) {
             UserDto userDto = new UserDto();
             userDto.setEmail(authDto.getEmail());
             userDto.setCreatedDate(new Date());
             userService.save(userDto);
+            Code code=new Code();
             code.setCode(String.valueOf(getOtpCode()));
             code.setUserId(userService.findByEmail(authDto.getEmail()));
             code.setEndDate(new Date(System.currentTimeMillis() + OTP_TTL));
             code.setStatus(Status.CREATED);
             codeRepository.save(code);
-            message = "Successful created account. Your code is sending email";
-            mailService.sendEmail(userService.findByEmail(authDto.getEmail()).getEmail(), "your code is:" + getOtpCode(), "otp code");}
-            return ResponseEntity.ok(message);
+            mailService.sendEmail(userService.findByEmail(authDto.getEmail()).getEmail(), "Successful created account .Your  code is:" + getOtpCode(), "otp code");
+
+        }
+
+          else if (user.getBlockedDateEnd() != null) {
+                throw new UserBlockedException("Account is blocked. Try after a certain time");
+            }  else if(user.getBlockedDateEnd()== null){
+               Code code1=new Code();
+                code1.setCode(String.valueOf(getOtpCode()));
+                code1.setUserId(userService.findByEmail(authDto.getEmail()));
+                code1.setEndDate(new Date(System.currentTimeMillis() + OTP_TTL));
+                code1.setStatus(Status.CANCELED);
+                codeRepository.save(code1);
+               message="Your NEW code";
+                mailService.sendEmail(userService.findByEmail(authDto.getEmail()).getEmail(), "your NEW code is:" + getOtpCode(), "otp code");
+            }
+          return ResponseEntity.ok(message);
         }
     }
 
